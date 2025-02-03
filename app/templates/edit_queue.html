@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Queue Data</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="my-4">Edit Queue Data</h1>
+        
+        <!-- แสดงข้อมูลปัจจุบัน -->
+        <div class="count-wrapper">
+            <p class="h5 mb-3">Current Count:</p>
+            <span id="current_count" class="badge bg-success count-badge">{{ current_count }}</span>
+        </div>
+         <!-- แสดงข้อมูลที่จะแจ้งเตือน -->
+         <div class="count-wrapper">
+            <p class="h5 mb-3">Current Alert:</p>
+            <span id="current_count" class="badge bg-success count-badge">{{ remaining_count }}</span>
+        </div>       
+        <!-- Total Count -->
+        <div class="count-wrapper">
+            <p class="h5 mb-3">Total Count:</p>
+            <span id="total_count" class="badge bg-primary count-badge">{{ total_count }}</span>
+        </div>
+
+        <!-- ฟอร์มเพื่อแก้ไขข้อมูล -->
+        <h3>Edit Values</h3>
+        <form action="/update_queue" method="POST">
+            <div class="mb-3">
+                <label for="current_count_input" class="form-label">Current Count</label>
+                <input type="number" id="current_count_input" name="current_count" class="form-control" value="{{ current_count }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="remaining_count_input" class="form-label">Current Alert</label>
+                <input type="number" id="remaining_count_input" name="remaining_count" class="form-control" value="{{ remaining_count }}" required>
+            </div>           
+            <div class="mb-3">
+                <label for="total_count_input" class="form-label">Total Count</label>
+                <input type="number" id="total_count_input" name="total_count" class="form-control" value="{{ total_count }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

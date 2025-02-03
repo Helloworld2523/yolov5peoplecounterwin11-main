@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queue Monitoring Dashboard</title>
+     <!-- ลิงก์ไปยังฟอนต์จาก Google Fonts -->
+     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Lora:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Roboto', sans-serif; /* ใช้ฟอนต์ Roboto */
+        }
+        .dashboard-card {
+            margin: 50px auto;
+            max-width: 600px;
+            padding: 20px;
+            border-radius: 15px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .count-wrapper {
+            margin-top: 20px;
+        }
+        .count-badge {
+            font-size: 2rem;
+            padding: 10px 20px;
+        }
+        .completed {
+            color: green;
+            font-weight: bold;
+            font-size: 5rem;
+            margin-top: 20px;
+            animation: blink 1s step-start infinite;
+            font-family: 'Lora', serif; /* ใช้ฟอนต์ Lora */
+        }
+        .alert-message {
+            color: orange;
+            font-weight: bold;
+            font-size: 2.5rem;
+            margin-top: 20px;
+            animation: blink 1s step-start infinite;
+        }
+        /* การทำให้ข้อความกระพริบ */
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container text-center">
+        <div class="dashboard-card">
+            <h1 class="mb-4 text-primary">Queue Monitoring</h1>
+            <!-- Current Count -->
+            <div class="count-wrapper">
+                <p class="h5 mb-3">Current Count:</p>
+                <span id="current_count" class="badge bg-success count-badge">0</span>
+            </div>
+            <!-- Total Count -->
+            <div class="count-wrapper">
+                <p class="h5 mb-3">Total Count:</p>
+                <span id="total_count" class="badge bg-primary count-badge">0</span>
+            </div>
+            <!-- Status Message -->
+            <p id="status_message" class="completed d-none">นับครบแล้ว</p>
+            <p id="alert_message" class="alert-message d-none"></p> <!-- เพิ่มข้อความเตือนที่เหลือ 20 คน -->
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
