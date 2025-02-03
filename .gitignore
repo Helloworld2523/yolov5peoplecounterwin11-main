@@ -196,7 +196,7 @@ pip-selfcheck.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,opencv,venv
 
-127_0_0_1.sql.zip
+# 127_0_0_1.sql.zip
 6-1-v2.mp4
 6-1.mp4
 cctv.mp4
