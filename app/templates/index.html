@@ -10,8 +10,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #28a745; /* สีพื้นหลังเป็นสีเขียว */
             font-family: 'Roboto', sans-serif; /* ใช้ฟอนต์ Roboto */
+            color: white; /* ข้อความเป็นสีขาว */
         }
         .dashboard-card {
             margin: 50px auto;
@@ -25,13 +26,13 @@
             margin-top: 20px;
         }
         .count-badge {
-            font-size: 2rem;
-            padding: 10px 20px;
+            font-size: 3rem; /* ขนาดฟอนต์ของ count ใหญ่ขึ้น */
+            padding: 15px 25px;
         }
         .completed {
             color: green;
             font-weight: bold;
-            font-size: 5rem;
+            font-size: 6rem; /* ขนาดฟอนต์ใหญ่ขึ้น */
             margin-top: 20px;
             animation: blink 1s step-start infinite;
             font-family: 'Lora', serif; /* ใช้ฟอนต์ Lora */
@@ -39,7 +40,7 @@
         .alert-message {
             color: orange;
             font-weight: bold;
-            font-size: 2.5rem;
+            font-size: 3rem; /* ขนาดฟอนต์ใหญ่ขึ้น */
             margin-top: 20px;
             animation: blink 1s step-start infinite;
         }
@@ -54,15 +55,15 @@
 <body>
     <div class="container text-center">
         <div class="dashboard-card">
-            <h1 class="mb-4 text-primary">Queue Monitoring</h1>
+            <h1 class="mb-4 text-primary" style="font-size: 4rem;">Queue Monitoring</h1> <!-- ขยายขนาดข้อความ -->
             <!-- Current Count -->
             <div class="count-wrapper">
-                <p class="h5 mb-3">Current Count:</p>
+                <p class="h5 mb-3" style="font-size: 2rem;">Current Count:</p> <!-- ขยายขนาดข้อความ -->
                 <span id="current_count" class="badge bg-success count-badge">0</span>
             </div>
             <!-- Total Count -->
             <div class="count-wrapper">
-                <p class="h5 mb-3">Total Count:</p>
+                <p class="h5 mb-3" style="font-size: 2rem;">Total Count:</p> <!-- ขยายขนาดข้อความ -->
                 <span id="total_count" class="badge bg-primary count-badge">0</span>
             </div>
             <!-- Status Message -->
