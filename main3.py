@@ -77,8 +77,8 @@ model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
 # model.to(device)
 
 # อ่านวิดีโอ
-# cap = cv2.VideoCapture('6-1-v2.mp4')
-cap = cv2.VideoCapture('http://202.41.160.68:1935/live/ru999/playlist.m3u8')
+cap = cv2.VideoCapture('6-1-v2.mp4')
+# cap = cv2.VideoCapture('http://202.41.160.68:1935/live/ru999/playlist.m3u8')
 # cap = cv2.VideoCapture(0)
 
 # ฟังก์ชันสำหรับติดตามจุดจากเมาส์
