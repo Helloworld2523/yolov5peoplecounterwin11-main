@@ -77,8 +77,8 @@ model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
 # model.to(device)
 
 # อ่านวิดีโอ
-cap = cv2.VideoCapture('6-1-v2.mp4')
-# cap = cv2.VideoCapture('http://202.41.160.68:1935/live/ru999/playlist.m3u8')
+# cap = cv2.VideoCapture('6-1-v2.mp4')
+cap = cv2.VideoCapture('http://202.41.160.68:1935/live/ru999/playlist.m3u8')
 # cap = cv2.VideoCapture(0)
 
 # ฟังก์ชันสำหรับติดตามจุดจากเมาส์
@@ -95,6 +95,8 @@ tracker = Tracker()
 # พื้นที่โพลิกอน (Polygon zone)
 
 # area_1 = [(727, 468), (793, 226), (818, 243), (785, 472)]
+# area_1 = [(384, 173), (383, 472),(410,178),(409,475)] # xx
+# area_1 = [(383, 474), (385, 173),(410,180),(408,470)]#จุดที่0.0
 # area_1 = [(372, 473), (375, 198), (421, 206), (419, 476)] #จุดที่ 0
 # area_1 = [(345, 472), (345, 192), (467, 186), (453, 477)] #จุดที่ 1
 # area_1 = [(444, 474), (466, 194), (508, 189), (498, 472)] #จุดที่ 1.1
