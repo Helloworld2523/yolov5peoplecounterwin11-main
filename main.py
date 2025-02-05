@@ -108,7 +108,7 @@ counted_ids = set()
 
 # updatecode5_2_68
 last_positions = {}  # เก็บตำแหน่งล่าสุดของแต่ละ ID
-distance_threshold = 50  # ระยะทางขั้นต่ำก่อนนับซ้ำ
+distance_threshold = 100  # ระยะทางขั้นต่ำก่อนนับซ้ำ
 # updatecode5_2_68
 
 # ดึงข้อมูล total_count และ current_count จากฐานข้อมูล
@@ -175,14 +175,15 @@ while True:
 
             if result > 0 and obj_id not in counted_ids:
                 print(f"Object {obj_id} entered counting zone")  # Debug
-                    # ตรวจสอบว่ามีการนับไปแล้วหรือไม่
+                # ตรวจสอบว่ามีการนับไปแล้วหรือไม่
                 current_time = time.time()
                 if obj_id in last_counted_time:
                     elapsed_time = current_time - last_counted_time[obj_id]
                     if elapsed_time < COOLDOWN_TIME:
-                        print(f"ID {obj_id} skipped due to cooldown ({elapsed_time:.2f}s)")
+                        # print(f"ID {obj_id} skipped due to cooldown ({elapsed_time:.2f}s)")
                         continue  # ข้ามการนับซ้ำ
-
+                    
+                # กรณีเดินจากซ้ายไปขวา หรือ ขวาไปซ้าย
                 if obj_id in last_positions:
                     last_cx, last_cy = last_positions[obj_id]
                     distance = math.sqrt((cx - last_cx) ** 2 + (cy - last_cy) ** 2)
@@ -197,14 +198,15 @@ while True:
                 if obj_id in last_positions:
                     last_cx, last_cy = last_positions[obj_id]
                     
-                    # เดินจากซ้ายไปขวา
+                    # ตรวจสอบการเดินจากซ้ายไปขวา
                     if cx > last_cx:
                         print(f"ID {obj_id} moved LEFT ➝ RIGHT")
-                        counted_ids.add(obj_id)
-                    # เดินจากขวาไปซ้าย
+                        counted_ids.add(obj_id)  # เพิ่ม ID ในชุดที่นับแล้ว
+                    # ตรวจสอบการเดินจากขวาไปซ้าย
                     elif cx < last_cx:
                         print(f"ID {obj_id} moved RIGHT ➝ LEFT")
-                        counted_ids.add(obj_id)
+                        # ไม่ทำการนับ ID เมื่อเดินจากขวาไปซ้าย
+                        continue  # ข้ามการนับเมื่อเดินย้อนกลับ
 
                 # บันทึกตำแหน่งและเวลานับล่าสุด
                 last_positions[obj_id] = (cx, cy)
