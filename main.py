@@ -9,8 +9,8 @@ from datetime import datetime
 import sys  # นำเข้า sys เพื่อใช้ exit()
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
-import time  # นำเข้าไลบรารี time
-# ฟังก์ชันสำหรับการเชื่อมต่อฐานข้อมูล
+
+# ฟังก์ชันเชื่อมต่อฐานข้อมูล
 def connect_to_db():
     return mysql.connector.connect(
         host="localhost",  # แก้ไขให้ตรงกับเซิร์ฟเวอร์ของคุณ
@@ -78,14 +78,7 @@ model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
 # model.to(device)
 
 # อ่านวิดีโอ
-# cap = cv2.VideoCapture('6-1-v2.mp4')
-# cap = cv2.VideoCapture('http://202.41.160.68:1935/live/ru999/playlist.m3u8')
-cap = cv2.VideoCapture(0)
-
-# ฟังก์ชันสำหรับติดตามจุดจากเมาส์
-def POINTS(event, x, y, flags, param):
-    if event == cv2.EVENT_MOUSEMOVE:  
-        print(f"Mouse Position: ({x}, {y})")
+cap = cv2.VideoCapture('http://202.41.160.68:1935/live/ru999/playlist.m3u8')
 
 cv2.namedWindow('FRAME')
 cv2.setMouseCallback('FRAME', POINTS)
@@ -104,11 +97,7 @@ tracker = Tracker()
 area_1 = [(748, 476), (769, 251), (787, 252), (763, 472)]  #จุดที่ 3 ระยะนี้ *
 
 counted_ids = set()
-
-# updatecode5_2_68
-last_positions = {}  # เก็บตำแหน่งล่าสุดของแต่ละ ID
-distance_threshold = 50  # ระยะทางขั้นต่ำก่อนนับซ้ำ
-# updatecode5_2_68
+tracked_objects = {}  # ใช้เก็บตำแหน่งก่อนหน้าของแต่ละ ID
 
 # ดึงข้อมูล total_count และ current_count จากฐานข้อมูล
 total_count, current_count = get_total_and_current_count()
@@ -122,11 +111,9 @@ if total_count == 0:  # หากไม่มีข้อมูลในฐา�
 # ตรวจสอบ current_count เมื่อมันเป็น 0 ให้หยุดโปรแกรม
 if current_count == 0:
     print("Current count is 0. Exiting the program.")
-    sys.exit()  # ออกจากโปรแกรมทันที
+    sys.exit()
 
-# ตัวแปรควบคุมการนับ
-is_counting = False
-
+# เริ่มตรวจจับ
 while True:
     total_count, current_count = get_total_and_current_count()
     
@@ -157,40 +144,22 @@ while True:
         # วาด bounding box และ ID บนเฟรม
         cv2.rectangle(frame, (x, y), (w, h), (255, 0, 255), 2)
         cv2.putText(frame, str(obj_id), (x, y - 10), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
-        
-        # วาดจุดที่ตำแหน่งใหม่
-        # วาดจุดกึ่งกลาง
-        # กำหนดระยะที่ต้องการให้จุดเลื่อนลงจากกึ่งกลาง
-        offset = 50  # ระยะห่างที่ต้องการเลื่อนลง (ปรับได้ตามต้องการ)
-        cy_adjusted = cy + offset  # ปรับตำแหน่งลง
-        cv2.circle(frame, (cx, cy_adjusted), 5, (0, 255, 255), -1)
-        
-        
-        if is_counting:
-            result = cv2.pointPolygonTest(np.array(area_1, np.int32), (cx, cy), False)
 
-        #     if result > 0 and obj_id not in counted_ids:
-        #         counted_ids.add(obj_id)
-        #         current_count -= 1  # ลด current_count เมื่อมีการนับวัตถุ
-        #         # print(current_count)
-        #         time.sleep(0.4)
-        #         update_current_count(current_count)  # อัปเดต current_count ในฐานข้อมูล
-        #update 2_5_68
-            if result > 0 and obj_id not in counted_ids:
-                if obj_id in last_positions:
-                    last_cx, last_cy = last_positions[obj_id]
-                    distance = math.sqrt((cx - last_cx) ** 2 + (cy - last_cy) ** 2)
+        # ติดตามทิศทางการเคลื่อนที่
+        if obj_id in tracked_objects:
+            prev_cx, _ = tracked_objects[obj_id]
+            direction = cx - prev_cx  # หาค่าการเปลี่ยนแปลงตำแหน่งแนวนอน
 
-                    if distance < distance_threshold:
-                        # ถ้าระยะห่างน้อยกว่า threshold ข้ามการนับ
-                        continue
+            # ตรวจสอบว่าคนเดินจากซ้ายไปขวาและยังไม่ถูกนับ
+            if direction > 0 and obj_id not in counted_ids:
+                result = cv2.pointPolygonTest(np.array(area_1, np.int32), (cx, cy), False)
+                if result > 0:
+                    counted_ids.add(obj_id)
+                    current_count -= 1
+                    update_current_count(current_count)
 
-                counted_ids.add(obj_id)
-                last_positions[obj_id] = (cx, cy)  # บันทึกตำแหน่งล่าสุดของวัตถุ
-                
-                current_count -= 1
-                update_current_count(current_count)
-        #update 2_5_68
+        # อัปเดตตำแหน่งล่าสุดของวัตถุ
+        tracked_objects[obj_id] = (cx, cy)
 
     cv2.putText(frame, f"Total: {total_count}, Remaining: {current_count}", (20, 50),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
