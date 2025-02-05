@@ -127,6 +127,9 @@ if current_count == 0:
 
 # ตัวแปรควบคุมการนับ
 is_counting = False
+# กำหนดเวลา cooldown 5 วินาที เพื่อป้องกันการนับซ้ำ
+COOLDOWN_TIME = 5
+last_counted_time = {}
 
 while True:
     total_count, current_count = get_total_and_current_count()
@@ -170,32 +173,47 @@ while True:
         if is_counting:
             result = cv2.pointPolygonTest(np.array(area_1, np.int32), (cx, cy), False)
 
-        #     if result > 0 and obj_id not in counted_ids:
-        #         counted_ids.add(obj_id)
-        #         current_count -= 1  # ลด current_count เมื่อมีการนับวัตถุ
-        #         # print(current_count)
-        #         time.sleep(0.4)
-        #         update_current_count(current_count)  # อัปเดต current_count ในฐานข้อมูล
-        #update 2_5_68
             if result > 0 and obj_id not in counted_ids:
                 print(f"Object {obj_id} entered counting zone")  # Debug
+                    # ตรวจสอบว่ามีการนับไปแล้วหรือไม่
+                current_time = time.time()
+                if obj_id in last_counted_time:
+                    elapsed_time = current_time - last_counted_time[obj_id]
+                    if elapsed_time < COOLDOWN_TIME:
+                        print(f"ID {obj_id} skipped due to cooldown ({elapsed_time:.2f}s)")
+                        continue  # ข้ามการนับซ้ำ
+
                 if obj_id in last_positions:
                     last_cx, last_cy = last_positions[obj_id]
                     distance = math.sqrt((cx - last_cx) ** 2 + (cy - last_cy) ** 2)
                     print(f"ID {obj_id} Distance moved: {distance}")  # Debug
 
+                    # ถ้าระยะเคลื่อนที่น้อยเกินไป แสดงว่าอาจเป็นคนยืนอยู่กับที่
                     if distance < distance_threshold:
                         print(f"ID {obj_id} skipped due to low movement")
-                        continue  # ถ้าระยะห่างน้อยกว่า threshold ข้ามการนับ
+                        continue
 
-                counted_ids.add(obj_id)
-                last_positions[obj_id] = (cx, cy)  # บันทึกตำแหน่งล่าสุดของวัตถุ
+                # ตรวจสอบทิศทางการเดิน
+                if obj_id in last_positions:
+                    last_cx, last_cy = last_positions[obj_id]
+                    
+                    # เดินจากซ้ายไปขวา
+                    if cx > last_cx:
+                        print(f"ID {obj_id} moved LEFT ➝ RIGHT")
+                        counted_ids.add(obj_id)
+                    # เดินจากขวาไปซ้าย
+                    elif cx < last_cx:
+                        print(f"ID {obj_id} moved RIGHT ➝ LEFT")
+                        counted_ids.add(obj_id)
+
+                # บันทึกตำแหน่งและเวลานับล่าสุด
+                last_positions[obj_id] = (cx, cy)
+                last_counted_time[obj_id] = current_time
 
                 current_count -= 1
                 print(f"Updated current_count: {current_count}")  # Debug
                 # time.sleep(0.1)
                 update_current_count(current_count)
-        #update 2_5_68
 
     cv2.putText(frame, f"Total: {total_count}, Remaining: {current_count}", (20, 50),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
