@@ -189,7 +189,6 @@ while True:
                 last_positions[obj_id] = (cx, cy)  # บันทึกตำแหน่งล่าสุดของวัตถุ
                 
                 current_count -= 1
-                time.sleep(0.1)
                 update_current_count(current_count)
         #update 2_5_68
 
