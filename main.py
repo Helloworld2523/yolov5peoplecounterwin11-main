@@ -72,6 +72,9 @@ if current_count == 0:
     print("Current count is 0. Exiting the program.")
     sys.exit()
 
+# ตัวแปรควบคุมการนับ
+is_counting = False
+
 # เริ่มตรวจจับ
 while True:
     total_count, current_count = get_total_and_current_count()
@@ -104,6 +107,10 @@ while True:
         cv2.rectangle(frame, (x, y), (w, h), (255, 0, 255), 2)
         cv2.putText(frame, str(obj_id), (x, y - 10), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
 
+        # กำหนดระยะที่ต้องการให้จุดเลื่อนลงจากกึ่งกลาง
+        offset = 50  # ระยะห่างที่ต้องการเลื่อนลง (ปรับได้ตามต้องการ)
+        cy_adjusted = cy + offset  # ปรับตำแหน่งลง
+        cv2.circle(frame, (cx, cy_adjusted), 5, (0, 255, 255), -1)
         # ติดตามทิศทางการเคลื่อนที่
         if obj_id in tracked_objects:
             prev_cx, _ = tracked_objects[obj_id]
@@ -125,7 +132,13 @@ while True:
     cv2.imshow('FRAME', frame)
 
     key = cv2.waitKey(1) & 0xFF
-    if key == 27:  # ESC key
+    if key == ord('s'):
+        is_counting = False
+        print("Counting paused.")
+    elif key == ord('r'):
+        is_counting = True
+        print("Counting resumed.")
+    elif key == 27:  # ESC key
         break
              
 cap.release()
