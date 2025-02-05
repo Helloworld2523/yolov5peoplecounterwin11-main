@@ -108,7 +108,7 @@ counted_ids = set()
 
 # updatecode5_2_68
 last_positions = {}  # เก็บตำแหน่งล่าสุดของแต่ละ ID
-distance_threshold = 100  # ระยะทางขั้นต่ำก่อนนับซ้ำ
+distance_threshold = 80  # ระยะทางขั้นต่ำก่อนนับซ้ำ
 # updatecode5_2_68
 
 # ดึงข้อมูล total_count และ current_count จากฐานข้อมูล
@@ -169,18 +169,17 @@ while True:
         cy_adjusted = cy + offset  # ปรับตำแหน่งลง
         cv2.circle(frame, (cx, cy_adjusted), 5, (0, 255, 255), -1)
         
-        
         if is_counting:
             result = cv2.pointPolygonTest(np.array(area_1, np.int32), (cx, cy), False)
-
             if result > 0 and obj_id not in counted_ids:
                 print(f"Object {obj_id} entered counting zone")  # Debug
+                
                 # ตรวจสอบว่ามีการนับไปแล้วหรือไม่
                 current_time = time.time()
                 if obj_id in last_counted_time:
                     elapsed_time = current_time - last_counted_time[obj_id]
                     if elapsed_time < COOLDOWN_TIME:
-                        # print(f"ID {obj_id} skipped due to cooldown ({elapsed_time:.2f}s)")
+                        print(f"ID {obj_id} skipped due to cooldown ({elapsed_time:.2f}s)")
                         continue  # ข้ามการนับซ้ำ
                     
                 # กรณีเดินจากซ้ายไปขวา หรือ ขวาไปซ้าย
