@@ -231,7 +231,7 @@ while True:
                 # บันทึกตำแหน่งและเวลานับล่าสุด
                 last_positions[obj_id] = (cx, cy)
                 last_counted_time[obj_id] = current_time
-
+ 
                 current_count -= 1
                 print(f"Updated current_count: {current_count}")  # Debug
                 # time.sleep(0.1)
