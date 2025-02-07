@@ -115,16 +115,20 @@ p_y = 10  # เพิ่มในแนวแกน Y
 p_x = 50  # เพิ่มในแนวแกน X
 p_y = 10  # เพิ่มในแนวแกน Y
 
-p_x = 100  # เพิ่มในแนวแกน X
+p_x = 65  # เพิ่มในแนวแกน X
 p_y = 10  # เพิ่มในแนวแกน Y
 
+
 area_1 = [(x + p_x, y + p_y) for x, y in area_1]
+
+# area_2 = [(727, 468), (793, 226), (818, 243), (785, 472)]
+# area_2 = [(x + p_x, y + p_y) for x, y in area_2]
 
 counted_ids = set()
 
 # updatecode5_2_68
 last_positions = {}  # เก็บตำแหน่งล่าสุดของแต่ละ ID
-distance_threshold = 80  # ระยะทางขั้นต่ำก่อนนับซ้ำ
+distance_threshold = 0  # ระยะทางขั้นต่ำก่อนนับซ้ำ
 # updatecode5_2_68
 
 # ดึงข้อมูล total_count และ current_count จากฐานข้อมูล
@@ -160,7 +164,8 @@ while True:
 
     frame = cv2.resize(frame, (1020, 500))
     cv2.polylines(frame, [np.array(area_1, np.int32)], True, (0, 255, 0), 3)
-
+    # cv2.polylines(frame, [np.array(area_2, np.int32)], True, (0, 255, 0), 3)
+    
     results = model(frame)
     detections = []
     for _, row in results.pandas().xyxy[0].iterrows():
@@ -186,7 +191,7 @@ while True:
         cv2.circle(frame, (cx, cy_adjusted), 5, (0, 255, 255), -1)
         
         if is_counting:
-            result = cv2.pointPolygonTest(np.array(area_1, np.int32), (cx, cy), False)
+            result = cv2.pointPolygonTest(np.array(area_1, np.int32), (cx, cy), True)
             if result > 0 and obj_id not in counted_ids:
                 print(f"Object {obj_id} entered counting zone")  # Debug
                 
@@ -194,9 +199,9 @@ while True:
                 current_time = time.time()
                 if obj_id in last_counted_time:
                     elapsed_time = current_time - last_counted_time[obj_id]
-                    if elapsed_time < COOLDOWN_TIME:
-                        print(f"ID {obj_id} skipped due to cooldown ({elapsed_time:.2f}s)")
-                        continue  # ข้ามการนับซ้ำ
+                    # if elapsed_time < COOLDOWN_TIME:
+                    #     print(f"ID {obj_id} skipped due to cooldown ({elapsed_time:.2f}s)")
+                    #     continue  # ข้ามการนับซ้ำ
                     
                 # กรณีเดินจากซ้ายไปขวา หรือ ขวาไปซ้าย
                 if obj_id in last_positions:
