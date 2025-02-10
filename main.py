@@ -87,7 +87,7 @@ def update_current_count(new_current_count):
             current_time = time.time()
 
             # ถ้าเวลาห่างกันน้อยกว่า 2 วินาที ให้ข้ามการอัปเดต
-            if (current_time - last_updated_time) < 2:
+            if (current_time - last_updated_time) < 1.5:
                 print("Skipping update: Last update was too recent.")
                 return
 
@@ -111,15 +111,12 @@ def update_current_count(new_current_count):
 model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
 model.conf = 0.40  # Confidence threshold (ค่ามากขึ้น = ตรวจจับเฉพาะวัตถุที่มั่นใจมากขึ้น)0.39
 # model.iou = 0.10   # IOU threshold (ค่ามากขึ้น = ลดการตรวจจับวัตถุซ้ำ)
-# ตรวจสอบการใช้ GPU
-# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-# model.to(device)
 
 # อ่านวิดีโอ
 # cap = cv2.VideoCapture('6-1-v2.mp4')
 # cap = cv2.VideoCapture('http://202.41.160.68:1935/live/ru999/playlist.m3u8')
-# cap = cv2.VideoCapture('07-02-68.mp4')
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture('07-02-68.mp4')
+# cap = cv2.VideoCapture(0)
 
 # ฟังก์ชันสำหรับติดตามจุดจากเมาส์
 def POINTS(event, x, y, flags, param):
@@ -134,38 +131,11 @@ tracker = Tracker()
 
 # พื้นที่โพลิกอน (Polygon zone)
 
-# area_1 = [(727, 468), (793, 226), (818, 243), (785, 472)]
-# area_1 = [(384, 173), (383, 472),(410,178),(409,475)] # xx
-# area_1 = [(383, 474), (385, 173),(410,180),(408,470)]#จุดที่0.0
-# area_1 = [(372, 473), (375, 198), (421, 206), (419, 476)] #จุดที่ 0
-# area_1 = [(345, 472), (345, 192), (467, 186), (453, 477)] #จุดที่ 1
-# area_1 = [(444, 474), (466, 194), (508, 189), (498, 472)] #จุดที่ 1.1
-# area_1 = [(748, 476), (769, 251), (787, 252), (763, 472)]  #จุดที่ 3 ระยะนี้ *
-# area_1 = [(790, 476), (811, 263), (826, 262), (810, 478)]  #จุดที่ 3 ระยะนี้ *
-# area_1 = [(790, 476), (807, 293), (825, 304), (810, 478)]  #จุดที่ 4 ปรับตั้งจุด พื้นที่ใหม่ โดยให้มีขนาดสั้นลง เพื่อป้องกัน คนด้านบนเดินทับเส้น *
-area_1 = [(336, 446), (377, 200), (575, 203), (558, 451)]  #จุดที่ 3 ระยะนี้ *
-# 
-# p=50 #เพิ่มระยะห่างที่เท่าๆกัน 
-# area_1 = [(790+p, 476), (811+p, 263), (826+p, 262), (810+p, 478)] #จุดที่ 4 ระยะนี้ *
-
-p_x = 20  # เพิ่มในแนวแกน X
-p_y = 10  # เพิ่มในแนวแกน Y
-
-p_x = 50  # เพิ่มในแนวแกน X
-p_y = 10  # เพิ่มในแนวแกน Y
-
-p_x = -10  # เพิ่มในแนวแกน X
-p_y = 10  # เพิ่มในแนวแกน Y
-
-
-# area_1 = [(x + p_x, y + p_y) for x, y in area_1]
-# area_1 = [(727, 468), (883, 282), (913, 296), (785, 472)]
+area_1 = [(790, 476), (807, 293), (825, 304), (810, 478)]  #จุดที่ 4 ปรับตั้งจุด พื้นที่ใหม่ โดยให้มีขนาดสั้นลง เพื่อป้องกัน คนด้านบนเดินทับเส้น *
 counted_ids = set()
 
-# updatecode5_2_68
+
 last_positions = {}  # เก็บตำแหน่งล่าสุดของแต่ละ ID
-distance_threshold =20   # ระยะทางขั้นต่ำก่อนนับซ้ำ
-# updatecode5_2_68
 
 # ดึงข้อมูล total_count และ current_count จากฐานข้อมูล
 total_count, current_count = get_total_and_current_count()
@@ -184,7 +154,8 @@ if current_count == 0:
 # ตัวแปรควบคุมการนับ
 is_counting = True
 # กำหนดเวลา cooldown 5 วินาที เพื่อป้องกันการนับซ้ำ
-COOLDOWN_TIME = 8
+COOLDOWN_TIME = 3 # หน่วยเป็นวินาที (แนะนำ 1-3 วินาที)
+DISTANCE_THRESHOLD = 20  # ถ้าระยะเคลื่อนที่น้อยกว่า 20 px จะไม่นับซ้ำ
 last_counted_time = {}
 
 while True:
@@ -202,56 +173,72 @@ while True:
     cv2.polylines(frame, [np.array(area_1, np.int32)], True, (0, 255, 0), 3)
 
     results = model(frame)
-    detections = []
-    confidences = {}  # ใช้ dictionary เพื่อเก็บค่า conf ตามลำดับของ obj_id
+
+    boxes_ids = []  # ลิสต์สำหรับเก็บข้อมูล bounding box ที่ตรวจพบ
+    confidences = {}  # Dictionary สำหรับเก็บค่า confidence ของแต่ละ obj_id
+
     for i, row in results.pandas().xyxy[0].iterrows():
         x1, y1, x2, y2 = int(row['xmin']), int(row['ymin']), int(row['xmax']), int(row['ymax'])
         label = row['name']
         conf = row['confidence']
-        
-        if label == 'person':
-            detections.append(([x1, y1, x2, y2]))
-            confidences[i] = conf  # เก็บ conf แยกไว้ใน dictionary ตามลำดับ index
 
-    boxes_ids = tracker.update(detections)
-    for idx, box_id in enumerate(boxes_ids):
-        x, y, w, h, obj_id = box_id
+        if label == 'person' and conf >= 0.39:
+            obj_id = len(boxes_ids)  # ใช้ index เป็น ID ชั่วคราว
+            boxes_ids.append([x1, y1, x2, y2])
+            # confidences[obj_id] = conf
+
+    # อัปเดตข้อมูลการติดตามวัตถุ
+    tracked_objects = tracker.update(boxes_ids)
+
+    for x, y, w, h, obj_id in tracked_objects:
         cx, cy = (x + w) // 2, (y + h) // 2
-        # ดึงค่า confidence จาก dictionary (หากหาไม่เจอให้เป็น 0.0)
-        conf = confidences.get(idx, 0.0)
-        if conf < 0.39 :
-            exit
+        # conf = confidences.get(obj_id, 0.0)  # ดึงค่า confidence จาก dictionary
+
         # วาด bounding box และ ID บนเฟรม
         cv2.rectangle(frame, (x, y), (w, h), (255, 0, 255), 2)
-        cv2.putText(frame,  f"ID: {obj_id} ({conf:.2f})", (x, y - 10), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
-        
-        # วาดจุดที่ตำแหน่งใหม่
+        # cv2.putText(frame, f"ID: {obj_id} ({conf:.2f})", (x, y - 10), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
+        cv2.putText(frame, f"ID: {obj_id}", (x, y - 10), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
+
         # วาดจุดกึ่งกลาง
-        # กำหนดระยะที่ต้องการให้จุดเลื่อนลงจากกึ่งกลาง
-        offset = 50  # ระยะห่างที่ต้องการเลื่อนลง (ปรับได้ตามต้องการ)
-        cy_adjusted = cy + offset  # ปรับตำแหน่งลง
+        offset = 50
+        cy_adjusted = cy + offset
         cv2.circle(frame, (cx, cy_adjusted), 5, (0, 255, 255), -1)
-        
+
         if is_counting:
             result = cv2.pointPolygonTest(np.array(area_1, np.int32), (cx, cy), False)
-            if result > 0 and obj_id not in counted_ids:
-                print(f"Object {obj_id} entered counting zone")  # Debug
-                
-                # ตรวจสอบว่ามีการนับไปแล้วหรือไม่
+
+            if result > 0:
+                # ตรวจสอบวัตถุนี้เคยนับแล้วหรือยัง
+                if obj_id in counted_ids:
+                    print(f"ID {obj_id} already counted, skipping")
+                    continue
+
+                # ตรวจสอบระยะเวลาระหว่างการนับ
                 current_time = time.time()
                 if obj_id in last_counted_time:
                     elapsed_time = current_time - last_counted_time[obj_id]
                     if elapsed_time < COOLDOWN_TIME:
                         print(f"ID {obj_id} skipped due to cooldown ({elapsed_time:.2f}s)")
-                        continue  # ข้ามการนับซ้ำ
-                    
-                # กรณีเดินจากซ้ายไปขวา หรือ ขวาไปซ้าย
+                        last_counted_time[obj_id] = current_time  # บันทึกเวลานับล่าสุด
+                        continue
+                last_counted_time[obj_id] = current_time  # บันทึกเวลานับล่าสุด
+                # ตรวจสอบระยะทางการเคลื่อนที่ของวัตถุ
                 if obj_id in last_positions:
                     last_cx, last_cy = last_positions[obj_id]
                     distance = math.sqrt((cx - last_cx) ** 2 + (cy - last_cy) ** 2)
-                    print(f"ID {obj_id} Distance moved: {distance}")  # Debug
 
-                    # ถ้าระยะเคลื่อนที่น้อยเกินไป แสดงว่าอาจเป็นคนยืนอยู่กับที่
+                    print(f"ID {obj_id} Distance moved: {distance}")
+
+                    if distance < DISTANCE_THRESHOLD:
+                        print(f"ID {obj_id} skipped due to low movement")
+                        continue
+                    
+                # ตรวจสอบระยะทางเคลื่อนที่ของวัตถุ
+                if obj_id in last_positions:
+                    last_cx, last_cy = last_positions[obj_id]
+                    distance = math.sqrt((cx - last_cx) ** 2 + (cy - last_cy) ** 2)
+                    print(f"ID {obj_id} Distance moved: {distance}")
+
                     if distance < distance_threshold:
                         print(f"ID {obj_id} skipped due to low movement")
                         continue
@@ -259,47 +246,25 @@ while True:
                 # ตรวจสอบทิศทางการเดิน
                 if obj_id in last_positions:
                     last_cx, last_cy = last_positions[obj_id]
-                    
-                    # ตรวจสอบการเดินจากซ้ายไปขวา
                     if cx > last_cx:
                         print(f"ID {obj_id} moved LEFT ➝ RIGHT")
-                        counted_ids.add(obj_id)  # เพิ่ม ID ในชุดที่นับแล้ว
-                    # ตรวจสอบการเดินจากขวาไปซ้าย
+                        counted_ids.add(obj_id)
                     elif cx < last_cx:
                         print(f"ID {obj_id} moved RIGHT ➝ LEFT")
-                        # ไม่ทำการนับ ID เมื่อเดินจากขวาไปซ้าย
-                        continue  # ข้ามการนับเมื่อเดินย้อนกลับ
+                        continue
 
                 # บันทึกตำแหน่งและเวลานับล่าสุด
                 last_positions[obj_id] = (cx, cy)
                 last_counted_time[obj_id] = current_time
 
+                # อัปเดตตัวนับ
                 current_count -= 1
-                print(f"Updated current_count: {current_count}")  # Debug
-                # time.sleep(0.1)
+                print(f"Updated current_count: {current_count}")
                 update_current_count(current_count)
 
-    cv2.putText(frame, f"Total: {total_count}, Remaining: {current_count}", (20, 50),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-    cv2.imshow('FRAME', frame)
-
-    # if cv2.waitKey(1) & 0xFF == 27:
-    #     break
-    
-    
-    # ดักจับปุ่ม ESC (27) และปุ่ม S (115)
-    # key = cv2.waitKey(1) & 0xFF
-    # if key == 27:  # ESC เพื่อออกจากโปรแกรม
-    #     break
-    # elif key == ord('s'):  # ปุ่ม S เพื่อหยุดการนับ
-    #     print("Counting paused. Press R to resume.")
-    #     while True:
-    #         key = cv2.waitKey(1) & 0xFF
-    #         if key == ord('r'):  # ปุ่ม R เพื่อกลับมานับต่อ
-    #             print("Counting resumed.")
-    #             break
-    #         elif key == 27:  # ESC เพื่อออกจากโปรแกรมขณะหยุด
-    #             sys.exit()
+        cv2.putText(frame, f"Total: {total_count}, Remaining: {current_count}", (20, 50),
+        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        cv2.imshow('FRAME', frame)
 
 
     # รอให้กด Spacebar (32) เพื่อไปเฟรมถัดไป

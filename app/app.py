@@ -71,7 +71,7 @@ def update_queue():
     cursor = db.cursor()
     cursor.execute("""
         UPDATE ru_queue
-        SET current_count = %s,remaining_count=%s, total_count = %s
+        SET current_count = %s,remaining_count=%s, total_count = %s,last_updated = NOW() 
         WHERE id = 1
     """, (current_count,remaining_count, total_count))
     db.commit()
