@@ -222,6 +222,7 @@ while True:
                         last_counted_time[obj_id] = current_time  # บันทึกเวลานับล่าสุด
                         continue
                 last_counted_time[obj_id] = current_time  # บันทึกเวลานับล่าสุด
+                
                 # ตรวจสอบระยะทางการเคลื่อนที่ของวัตถุ
                 if obj_id in last_positions:
                     last_cx, last_cy = last_positions[obj_id]
@@ -233,15 +234,15 @@ while True:
                         print(f"ID {obj_id} skipped due to low movement")
                         continue
                     
-                # ตรวจสอบระยะทางเคลื่อนที่ของวัตถุ
-                if obj_id in last_positions:
-                    last_cx, last_cy = last_positions[obj_id]
-                    distance = math.sqrt((cx - last_cx) ** 2 + (cy - last_cy) ** 2)
-                    print(f"ID {obj_id} Distance moved: {distance}")
+                # # ตรวจสอบระยะทางเคลื่อนที่ของวัตถุ
+                # if obj_id in last_positions:
+                #     last_cx, last_cy = last_positions[obj_id]
+                #     distance = math.sqrt((cx - last_cx) ** 2 + (cy - last_cy) ** 2)
+                #     print(f"ID {obj_id} Distance moved: {distance}")
 
-                    if distance < distance_threshold:
-                        print(f"ID {obj_id} skipped due to low movement")
-                        continue
+                #     if distance < DISTANCE_THRESHOLD:
+                #         print(f"ID {obj_id} skipped due to low movement")
+                #         continue
 
                 # ตรวจสอบทิศทางการเดิน
                 if obj_id in last_positions:
@@ -274,8 +275,7 @@ while True:
     #     break
     # time.sleep(0.05)
     key = cv2.waitKey(1) & 0xFF
-    if key == ord('s'):
-        is_counting = False
+    if key == ord('s') or current_count==20: # เมื่อกดดปุ่ม s หรือ จำนวนเหลือ 20 จะให้หยุดการทำงานเพื่อทำการนับเอง
         print("Counting paused.")
     elif key == ord('r'):
         is_counting = True
