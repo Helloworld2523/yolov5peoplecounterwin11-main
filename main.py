@@ -114,8 +114,8 @@ model.conf = 0.40  # Confidence threshold (ค่ามากขึ้น = ต�
 
 # อ่านวิดีโอ
 # cap = cv2.VideoCapture('6-1-v2.mp4')
-# cap = cv2.VideoCapture('http://202.41.160.68:1935/live/ru999/playlist.m3u8')
-cap = cv2.VideoCapture('07-02-68.mp4')
+cap = cv2.VideoCapture('http://202.41.160.68:1935/live/ru999/playlist.m3u8')
+# cap = cv2.VideoCapture('07-02-68.mp4')
 # cap = cv2.VideoCapture(0)
 
 # ฟังก์ชันสำหรับติดตามจุดจากเมาส์
@@ -152,7 +152,7 @@ if current_count == 0:
     sys.exit()  # ออกจากโปรแกรมทันที
 
 # ตัวแปรควบคุมการนับ
-is_counting = True
+is_counting = False
 # กำหนดเวลา cooldown 5 วินาที เพื่อป้องกันการนับซ้ำ
 COOLDOWN_TIME = 3 # หน่วยเป็นวินาที (แนะนำ 1-3 วินาที)
 DISTANCE_THRESHOLD = 20  # ถ้าระยะเคลื่อนที่น้อยกว่า 20 px จะไม่นับซ้ำ
@@ -276,6 +276,7 @@ while True:
     # time.sleep(0.05)
     key = cv2.waitKey(1) & 0xFF
     if key == ord('s') or current_count==20: # เมื่อกดดปุ่ม s หรือ จำนวนเหลือ 20 จะให้หยุดการทำงานเพื่อทำการนับเอง
+        is_counting = False
         print("Counting paused.")
     elif key == ord('r'):
         is_counting = True
