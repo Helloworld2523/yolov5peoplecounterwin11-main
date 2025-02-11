@@ -213,6 +213,25 @@ while True:
                     print(f"ID {obj_id} already counted, skipping")
                     continue
 
+                # ตรวจสอบระยะทางการเคลื่อนที่ของวัตถุ
+                if obj_id in last_positions:
+                    last_cx, last_cy = last_positions[obj_id]
+                    distance = math.sqrt((cx - last_cx) ** 2 + (cy - last_cy) ** 2)
+                    print("ตรวจสอบระยะทางการเคลื่อนที่ของวัตถุ")
+                    print(f"ID {obj_id} Distance moved: {distance}")
+
+                    if distance < DISTANCE_THRESHOLD:
+                        print(f"ID {obj_id} skipped due to low movement")
+                        continue
+                    
+                    # ตรวจสอบทิศทางการเดิน
+                    if cx > last_cx:
+                        print(f"ID {obj_id} moved LEFT ➝ RIGHT")
+                        counted_ids.add(obj_id)
+                    elif cx < last_cx:
+                        print(f"ID {obj_id} moved RIGHT ➝ LEFT")
+                        continue
+                    
                 # ตรวจสอบระยะเวลาระหว่างการนับ
                 current_time = time.time()
                 if obj_id in last_counted_time:
@@ -223,16 +242,7 @@ while True:
                         continue
                 last_counted_time[obj_id] = current_time  # บันทึกเวลานับล่าสุด
                 
-                # ตรวจสอบระยะทางการเคลื่อนที่ของวัตถุ
-                if obj_id in last_positions:
-                    last_cx, last_cy = last_positions[obj_id]
-                    distance = math.sqrt((cx - last_cx) ** 2 + (cy - last_cy) ** 2)
 
-                    print(f"ID {obj_id} Distance moved: {distance}")
-
-                    if distance < DISTANCE_THRESHOLD:
-                        print(f"ID {obj_id} skipped due to low movement")
-                        continue
                     
                 # # ตรวจสอบระยะทางเคลื่อนที่ของวัตถุ
                 # if obj_id in last_positions:
@@ -245,14 +255,14 @@ while True:
                 #         continue
 
                 # ตรวจสอบทิศทางการเดิน
-                if obj_id in last_positions:
-                    last_cx, last_cy = last_positions[obj_id]
-                    if cx > last_cx:
-                        print(f"ID {obj_id} moved LEFT ➝ RIGHT")
-                        counted_ids.add(obj_id)
-                    elif cx < last_cx:
-                        print(f"ID {obj_id} moved RIGHT ➝ LEFT")
-                        continue
+                # if obj_id in last_positions:
+                #     last_cx, last_cy = last_positions[obj_id]
+                #     if cx > last_cx:
+                #         print(f"ID {obj_id} moved LEFT ➝ RIGHT")
+                #         counted_ids.add(obj_id)
+                #     elif cx < last_cx:
+                #         print(f"ID {obj_id} moved RIGHT ➝ LEFT")
+                #         continue
 
                 # บันทึกตำแหน่งและเวลานับล่าสุด
                 last_positions[obj_id] = (cx, cy)
@@ -260,8 +270,8 @@ while True:
 
                 # อัปเดตตัวนับ
                 current_count -= 1
-                print(f"Updated current_count: {current_count}")
                 update_current_count(current_count)
+                print(f"Updated current_count: {current_count}")
 
         cv2.putText(frame, f"Total: {total_count}, Remaining: {current_count}", (20, 50),
         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
