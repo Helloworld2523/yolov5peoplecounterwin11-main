@@ -109,13 +109,13 @@ def update_current_count(new_current_count):
 
 # โหลดโมเดล YOLOv5
 model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
-model.conf = 0.40  # Confidence threshold (ค่ามากขึ้น = ตรวจจับเฉพาะวัตถุที่มั่นใจมากขึ้น)0.39
+# model.conf = 0.40  # Confidence threshold (ค่ามากขึ้น = ตรวจจับเฉพาะวัตถุที่มั่นใจมากขึ้น)0.39
 # model.iou = 0.10   # IOU threshold (ค่ามากขึ้น = ลดการตรวจจับวัตถุซ้ำ)
 
 # อ่านวิดีโอ
 # cap = cv2.VideoCapture('6-1-v2.mp4')
-# cap = cv2.VideoCapture('http://202.41.160.68:1935/live/ru999/playlist.m3u8')
-cap = cv2.VideoCapture('07-02-68.mp4')
+cap = cv2.VideoCapture('http://202.41.160.68:1935/live/ru999/playlist.m3u8')
+# cap = cv2.VideoCapture('07-02-68.mp4')
 # cap = cv2.VideoCapture(0)
 
 # ฟังก์ชันสำหรับติดตามจุดจากเมาส์
@@ -152,7 +152,7 @@ if current_count == 0:
     sys.exit()  # ออกจากโปรแกรมทันที
 
 # ตัวแปรควบคุมการนับ
-is_counting = True
+is_counting = False
 # กำหนดเวลา cooldown 5 วินาที เพื่อป้องกันการนับซ้ำ
 COOLDOWN_TIME = 3 # หน่วยเป็นวินาที (แนะนำ 1-3 วินาที)
 DISTANCE_THRESHOLD = 20  # ถ้าระยะเคลื่อนที่น้อยกว่า 20 px จะไม่นับซ้ำ
@@ -213,6 +213,16 @@ while True:
                     print(f"ID {obj_id} already counted, skipping")
                     continue
 
+                # ตรวจสอบระยะเวลาระหว่างการนับ
+                current_time = time.time()
+                if obj_id in last_counted_time:
+                    elapsed_time = current_time - last_counted_time[obj_id]
+                    if elapsed_time < COOLDOWN_TIME:
+                        print(f"ID {obj_id} skipped due to cooldown ({elapsed_time:.2f}s)")
+                        last_counted_time[obj_id] = current_time  # บันทึกเวลานับล่าสุด
+                        continue
+                last_counted_time[obj_id] = current_time  # บันทึกเวลานับล่าสุด
+                
                 # ตรวจสอบระยะทางการเคลื่อนที่ของวัตถุ
                 if obj_id in last_positions:
                     last_cx, last_cy = last_positions[obj_id]
@@ -231,38 +241,6 @@ while True:
                     elif cx < last_cx:
                         print(f"ID {obj_id} moved RIGHT ➝ LEFT")
                         continue
-                    
-                # ตรวจสอบระยะเวลาระหว่างการนับ
-                current_time = time.time()
-                if obj_id in last_counted_time:
-                    elapsed_time = current_time - last_counted_time[obj_id]
-                    if elapsed_time < COOLDOWN_TIME:
-                        print(f"ID {obj_id} skipped due to cooldown ({elapsed_time:.2f}s)")
-                        last_counted_time[obj_id] = current_time  # บันทึกเวลานับล่าสุด
-                        continue
-                last_counted_time[obj_id] = current_time  # บันทึกเวลานับล่าสุด
-                
-
-                    
-                # # ตรวจสอบระยะทางเคลื่อนที่ของวัตถุ
-                # if obj_id in last_positions:
-                #     last_cx, last_cy = last_positions[obj_id]
-                #     distance = math.sqrt((cx - last_cx) ** 2 + (cy - last_cy) ** 2)
-                #     print(f"ID {obj_id} Distance moved: {distance}")
-
-                #     if distance < DISTANCE_THRESHOLD:
-                #         print(f"ID {obj_id} skipped due to low movement")
-                #         continue
-
-                # ตรวจสอบทิศทางการเดิน
-                # if obj_id in last_positions:
-                #     last_cx, last_cy = last_positions[obj_id]
-                #     if cx > last_cx:
-                #         print(f"ID {obj_id} moved LEFT ➝ RIGHT")
-                #         counted_ids.add(obj_id)
-                #     elif cx < last_cx:
-                #         print(f"ID {obj_id} moved RIGHT ➝ LEFT")
-                #         continue
 
                 # บันทึกตำแหน่งและเวลานับล่าสุด
                 last_positions[obj_id] = (cx, cy)
@@ -286,6 +264,7 @@ while True:
     # time.sleep(0.05)
     key = cv2.waitKey(1) & 0xFF
     if key == ord('s') or current_count==20: # เมื่อกดดปุ่ม s หรือ จำนวนเหลือ 20 จะให้หยุดการทำงานเพื่อทำการนับเอง
+        is_counting = False
         print("Counting paused.")
     elif key == ord('r'):
         is_counting = True
